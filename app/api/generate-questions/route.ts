@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { isPaidFeatureGatingEnabled } from '@/lib/access';
 import { inferSkillKey, getSkillByKey, SKILL_KEYS } from '@/lib/skills';
 import { createSupabaseRouteClient } from '@/lib/supabase/route';
 import { NextResponse } from 'next/server';
@@ -549,7 +550,13 @@ Requirements: reflect hospital's specific culture and values, mix of behavioral/
     }
 
     const plan = profile.plan || 'free';
-    if (plan === 'free' && !stageKey && !hospitalMode && !voiceMode) {
+    if (
+      isPaidFeatureGatingEnabled() &&
+      plan === 'free' &&
+      !stageKey &&
+      !hospitalMode &&
+      !voiceMode
+    ) {
       const { count, error: countError } = await supabase
         .from('practice_sessions')
         .select('id', { count: 'exact', head: true })

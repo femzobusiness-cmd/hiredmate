@@ -256,14 +256,9 @@ export function VoicePracticeClient() {
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00C6B2]">
           Voice Practice Mode
         </p>
-        <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h1 className="text-3xl font-black text-[#1a1a2e]">
-            Practice Out Loud 🎙️
-          </h1>
-          <span className="rounded-full bg-[#F59E0B] px-3 py-1 text-[10px] font-bold text-white">
-            Premium Feature
-          </span>
-        </div>
+        <h1 className="mt-2 text-3xl font-black text-[#1a1a2e]">
+          Practice Out Loud 🎙️
+        </h1>
         <p className="mt-3 text-gray-600">
           Record your answer, get instant feedback on filler words, pace, and
           clinical accuracy.

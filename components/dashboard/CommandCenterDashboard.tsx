@@ -4,6 +4,9 @@ import type { SkillWithProgress } from '@/components/skills/SkillCard';
 import { CurrentStageWidget } from '@/components/learn/CurrentStageWidget';
 import { MockInterviewWidget } from '@/components/dashboard/MockInterviewWidget';
 import { VoicePracticeWidget } from '@/components/dashboard/VoicePracticeWidget';
+import { BattleWidget } from '@/components/dashboard/BattleWidget';
+import { ResumeWidget } from '@/components/dashboard/ResumeWidget';
+import { CommunityWidget } from '@/components/dashboard/CommunityWidget';
 import { QuestWidget } from '@/components/quests/QuestWidget';
 import type { NextStageInfo } from '@/lib/learning-path';
 import type { QuestWithProgress } from '@/lib/quests';
@@ -286,6 +289,11 @@ export function CommandCenterDashboard({
         />
 
         {dailyQuests.length > 0 && <QuestWidget quests={dailyQuests} />}
+
+        <CommunityWidget />
+
+        <BattleWidget />
+        <ResumeWidget />
 
         <MockInterviewWidget />
 

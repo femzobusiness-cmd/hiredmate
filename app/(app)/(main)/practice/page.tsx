@@ -91,7 +91,6 @@ export default function PracticePage() {
   const [wrongAnswers, setWrongAnswers] = useState<MultipleChoiceQuestion[]>([]);
   const [mcFinished, setMcFinished] = useState(false);
   const [startTime, setStartTime] = useState(() => Date.now());
-  const [upgradeRequired, setUpgradeRequired] = useState(false);
   const [profileSetupRequired, setProfileSetupRequired] = useState(false);
   const [profileXp, setProfileXp] = useState(0);
   const [rankTitle, setRankTitle] = useState('Student Nurse');
@@ -196,7 +195,6 @@ export default function PracticePage() {
     setFloatingXp(null);
     setAutoAdvancingMc(false);
     setStartTime(Date.now());
-    setUpgradeRequired(false);
     setProfileSetupRequired(false);
 
     try {
@@ -230,11 +228,6 @@ export default function PracticePage() {
       }
 
       const data = await res.json().catch(() => ({}));
-
-      if (!res.ok && data.error === 'upgrade_required') {
-        setUpgradeRequired(true);
-        return;
-      }
 
       if (
         !res.ok &&
@@ -595,53 +588,6 @@ export default function PracticePage() {
           newRank={rankUp.newRank}
           onContinue={() => setRankUp(null)}
         />
-      )}
-      {upgradeRequired && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-page-bg/90 px-4 backdrop-blur-sm">
-          <Card className="max-w-lg overflow-hidden p-0 text-center">
-            <div className="bg-purple-gradient px-8 py-8 text-white">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/80">
-                Free plan limit
-              </p>
-              <h2 className="mt-2 text-3xl font-black">
-                You&apos;ve used your 3 free sessions
-              </h2>
-              <p className="mt-3 text-white/85">
-                Upgrade to keep practicing
-              </p>
-            </div>
-
-            <div className="space-y-6 p-8">
-              <div className="space-y-3 text-left">
-                {[
-                  'Unlimited practice sessions',
-                  'Full AI coaching and scoring',
-                  'Salary negotiation scripts',
-                ].map((benefit) => (
-                  <div key={benefit} className="flex items-center gap-3">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      ✓
-                    </span>
-                    <span className="font-medium text-text-primary">{benefit}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-3">
-                <Button className="w-full" onClick={() => router.push('/pricing')}>
-                  Upgrade for $19/month →
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full"
-                  onClick={() => setUpgradeRequired(false)}
-                >
-                  Maybe later
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
       )}
       {profileSetupRequired && (
         <Card className="text-center">

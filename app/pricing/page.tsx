@@ -68,6 +68,12 @@ export default async function PricingPage() {
           </Link>
         </div>
 
+        <div className="mb-8 rounded-[20px] border border-[#00C6B2]/30 bg-[#00C6B2]/10 px-6 py-4 text-center">
+          <p className="text-base font-bold text-[#00A896]">
+            🎉 All features are free during our beta — no credit card needed
+          </p>
+        </div>
+
         <section className="mb-10 text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-primary">
             Pricing
@@ -76,8 +82,8 @@ export default async function PricingPage() {
             Practice until your nursing interview answers feel natural.
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-text-secondary">
-            Start free, then upgrade when you want unlimited AI coaching,
-            progress tracking, and salary prep.
+            Free during beta — full access to AI coaching, voice practice,
+            progress tracking, and salary prep at no cost.
           </p>
         </section>
 

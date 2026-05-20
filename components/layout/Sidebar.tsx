@@ -2,6 +2,7 @@
 
 import { RankBadge } from '@/components/ui/RankBadge';
 import { XPCounter } from '@/components/ui/XPCounter';
+import { BETA_ALL_FEATURES_FREE } from '@/lib/access';
 import { getRankForXp, getRankProgress } from '@/lib/gamification';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { cn } from '@/utils/cn';
@@ -10,6 +11,7 @@ import {
   BookOpen,
   Building2,
   DollarSign,
+  FileText,
   LayoutDashboard,
   LogOut,
   Map,
@@ -20,7 +22,9 @@ import {
   Target,
   TreePine,
   TrendingUp,
+  Users,
   X,
+  Zap,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -45,6 +49,24 @@ const navItems = [
   },
   { href: '/quests', label: 'Quests', icon: Target, showQuestBadge: true },
   { href: '/progress', label: 'My Progress', icon: TrendingUp },
+  {
+    href: '/community',
+    label: 'Community',
+    icon: Users,
+    showCommunityBadge: true,
+  },
+  {
+    href: '/battle',
+    label: 'Battle Mode',
+    icon: Zap,
+    showBattleBadge: true,
+  },
+  {
+    href: '/resume-builder',
+    label: 'Resume Builder',
+    icon: FileText,
+    showResumeBuilderBadge: true,
+  },
   { href: '/skills', label: 'Skill Tree', icon: TreePine },
   { href: '/hospitals', label: 'Hospitals', icon: Building2, showNewBadge: true },
   { href: '/salary-prep', label: 'Salary Prep', icon: DollarSign },
@@ -52,9 +74,9 @@ const navItems = [
 ];
 
 const sections = [
-  { label: 'MAIN', items: navItems.slice(0, 7) },
-  { label: 'TOOLS', items: navItems.slice(7, 10) },
-  { label: 'ACCOUNT', items: navItems.slice(10) },
+  { label: 'MAIN', items: navItems.slice(0, 8) },
+  { label: 'TOOLS', items: navItems.slice(8, 13) },
+  { label: 'ACCOUNT', items: navItems.slice(13) },
 ];
 
 interface SidebarProps {
@@ -155,14 +177,29 @@ function SidebarPanel({
                 const isHospitals = item.href === '/hospitals';
                 const isMockInterview = item.href === '/mock-interview';
                 const isVoicePractice = item.href === '/voice-practice';
+                const isCommunity = item.href === '/community';
+                const isBattle = item.href === '/battle';
+                const isResumeBuilder = item.href === '/resume-builder';
+                const isTealHighlight =
+                  isHospitals ||
+                  isMockInterview ||
+                  isVoicePractice ||
+                  isCommunity ||
+                  isResumeBuilder;
                 const isActive = isHospitals
                   ? pathname.startsWith('/hospitals')
                   : isMockInterview
                     ? pathname.startsWith('/mock-interview')
                     : isVoicePractice
                       ? pathname === '/voice-practice'
-                      : pathname === item.href ||
-                        pathname.startsWith(`${item.href}/`);
+                      : isCommunity
+                        ? pathname.startsWith('/community')
+                        : isBattle
+                          ? pathname.startsWith('/battle')
+                          : isResumeBuilder
+                            ? pathname.startsWith('/resume-builder')
+                            : pathname === item.href ||
+                              pathname.startsWith(`${item.href}/`);
                 const showQuestBadge =
                   'showQuestBadge' in item &&
                   item.showQuestBadge &&
@@ -171,6 +208,12 @@ function SidebarPanel({
                 const showNewBadge = 'showNewBadge' in item && item.showNewBadge;
                 const showGoldNewBadge =
                   'showGoldNewBadge' in item && item.showGoldNewBadge;
+                const showCommunityBadge =
+                  'showCommunityBadge' in item && item.showCommunityBadge;
+                const showBattleBadge =
+                  'showBattleBadge' in item && item.showBattleBadge;
+                const showResumeBuilderBadge =
+                  'showResumeBuilderBadge' in item && item.showResumeBuilderBadge;
 
                 return (
                   <Link
@@ -185,30 +228,30 @@ function SidebarPanel({
                       className={cn(
                         'group relative flex h-11 items-center gap-3 overflow-hidden rounded-[12px] px-4 text-sm transition-all',
                         isActive
-                          ? isHospitals || isMockInterview || isVoicePractice
+                          ? isBattle
+                            ? 'bg-red-500/10 font-bold text-red-500'
+                            : isTealHighlight
                             ? 'bg-[#7C5CBF]/10 font-bold text-[#7C5CBF]'
                             : 'font-bold text-primary shadow-nav'
                           : 'text-body-text hover:text-text-primary'
                       )}
                     >
-                      {isActive &&
-                        !isHospitals &&
-                        !isMockInterview &&
-                        !isVoicePractice && (
+                      {isActive && !isTealHighlight && (
                           <motion.div
                             layoutId="activeNav"
                             className="absolute inset-0 rounded-xl bg-purple-50"
                           />
                         )}
-                      {isActive &&
-                        (isHospitals || isMockInterview || isVoicePractice) && (
+                      {isActive && isTealHighlight && (
                           <div className="absolute inset-0 rounded-xl bg-[#7C5CBF]/10" />
                         )}
                       <Icon
                         className={cn(
                           'relative z-10 h-4 w-4 transition-colors',
                           isActive
-                            ? 'text-primary'
+                            ? isBattle
+                              ? 'text-red-500'
+                              : 'text-primary'
                             : 'text-text-muted group-hover:text-primary'
                         )}
                       />
@@ -228,12 +271,27 @@ function SidebarPanel({
                           NEW
                         </span>
                       )}
-                      {showGoldNewBadge && (
-                        <span className="relative z-10 rounded-full bg-[#F59E0B] px-1.5 py-0.5 text-[10px] font-bold text-white">
-                          NEW
-                        </span>
-                      )}
-                    </motion.div>
+                        {showGoldNewBadge && (
+                          <span className="relative z-10 rounded-full bg-[#F59E0B] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                            NEW
+                          </span>
+                        )}
+                        {showCommunityBadge && (
+                          <span className="relative z-10 rounded-full bg-[#00C6B2] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                            NEW
+                          </span>
+                        )}
+                        {showBattleBadge && (
+                          <span className="relative z-10 rounded-full bg-[#EF4444] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                            NEW
+                          </span>
+                        )}
+                        {showResumeBuilderBadge && (
+                          <span className="relative z-10 rounded-full bg-[#F59E0B] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                            NEW
+                          </span>
+                        )}
+                      </motion.div>
                   </Link>
                 );
               })}
@@ -242,7 +300,7 @@ function SidebarPanel({
         ))}
       </nav>
 
-      {isFreePlan && (
+      {isFreePlan && !BETA_ALL_FEATURES_FREE && (
         <div className="mb-4 rounded-[18px] bg-purple-gradient p-4 text-white shadow-card">
           <p className="text-sm font-black">🚀 Upgrade to Pro</p>
           <p className="mt-1 text-xs font-medium text-white/80">

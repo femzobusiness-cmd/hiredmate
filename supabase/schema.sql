@@ -355,3 +355,107 @@ create policy "Users can manage own voice sessions"
   to authenticated
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+-- Community / social (Phase 11)
+alter table public.practice_sessions
+  add column if not exists xp_earned integer default 0;
+
+create table if not exists public.friendships (
+  id uuid default gen_random_uuid() primary key,
+  requester_id uuid references auth.users(id) on delete cascade not null,
+  receiver_id uuid references auth.users(id) on delete cascade not null,
+  status text default 'pending',
+  created_at timestamptz default now(),
+  unique (requester_id, receiver_id)
+);
+
+alter table public.friendships enable row level security;
+
+create policy "Users can manage own friendships"
+  on public.friendships for all
+  to authenticated
+  using (auth.uid() = requester_id or auth.uid() = receiver_id)
+  with check (auth.uid() = requester_id or auth.uid() = receiver_id);
+
+create table if not exists public.shared_achievements (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  achievement_type text not null,
+  achievement_data jsonb,
+  created_at timestamptz default now()
+);
+
+alter table public.shared_achievements enable row level security;
+
+create policy "Users can manage own shares"
+  on public.shared_achievements for all
+  to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "Authenticated users can view profiles for community"
+  on public.user_profiles for select
+  to authenticated
+  using (true);
+
+-- Battle Mode (Phase 12)
+create table if not exists public.battle_sessions (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  score integer default 0,
+  questions_answered integer default 0,
+  correct_answers integer default 0,
+  speed_bonuses integer default 0,
+  xp_earned integer default 0,
+  max_streak integer default 0,
+  difficulty_reached integer default 1,
+  created_at timestamptz default now()
+);
+
+alter table public.battle_sessions enable row level security;
+
+create policy "Users can manage own battle sessions"
+  on public.battle_sessions for all
+  to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create table if not exists public.battle_leaderboard (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  weekly_score integer default 0,
+  all_time_best integer default 0,
+  battles_played integer default 0,
+  week_start date,
+  updated_at timestamptz default now()
+);
+
+alter table public.battle_leaderboard enable row level security;
+
+create policy "Users can manage own battle scores"
+  on public.battle_leaderboard for all
+  to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- AI Resume Builder (Phase 13)
+create table if not exists public.resumes (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  title text default 'My Nursing Resume',
+  specialty text,
+  target_role text,
+  resume_data jsonb,
+  generated_content jsonb,
+  version integer default 1,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table public.resumes enable row level security;
+
+create policy "Users can manage own resumes"
+  on public.resumes for all
+  to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);

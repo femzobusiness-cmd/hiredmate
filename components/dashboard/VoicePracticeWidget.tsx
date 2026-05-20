@@ -10,12 +10,7 @@ export function VoicePracticeWidget() {
       animate={{ opacity: 1, y: 0 }}
       className="rounded-[20px] bg-white p-6 shadow-[0_8px_30px_rgba(124,92,191,0.12)]"
     >
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="text-lg font-bold text-[#1a1a2e]">🎙️ Voice Practice</h3>
-        <span className="rounded-full bg-[#F59E0B] px-2 py-0.5 text-[10px] font-bold text-white">
-          Premium
-        </span>
-      </div>
+      <h3 className="text-lg font-bold text-[#1a1a2e]">🎙️ Voice Practice</h3>
       <p className="mt-2 text-sm text-gray-600">
         Record your answers out loud and get instant feedback on filler words,
         pace, and clarity.

@@ -78,7 +78,7 @@ export default function LoginPage() {
         <Logo size="lg" className="breathe relative z-10" />
         <div>
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-secondary">
-            Premium interview preparation
+            Free during beta — full access
           </p>
           <h1 className="max-w-xl text-5xl font-bold leading-tight text-white">
             Clinical confidence for every healthcare interview.
