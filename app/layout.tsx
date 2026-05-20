@@ -1,3 +1,4 @@
+import MobileNav from '@/components/MobileNav';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -20,7 +21,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans`}>{children}</body>
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className={`${inter.variable} font-sans pb-20 md:pb-0`}>
+        {children}
+        <MobileNav />
+      </body>
     </html>
   );
 }

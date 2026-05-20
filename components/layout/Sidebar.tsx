@@ -1,6 +1,5 @@
 'use client';
 
-import Logo from '@/components/ui/Logo';
 import { RankBadge } from '@/components/ui/RankBadge';
 import { XPCounter } from '@/components/ui/XPCounter';
 import { getRankForXp, getRankProgress } from '@/lib/gamification';
@@ -19,6 +18,7 @@ import {
   TreePine,
   TrendingUp,
 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -90,7 +90,26 @@ export default function Sidebar({
     <aside className="fixed inset-y-0 hidden w-[260px] flex-col border-r border-border bg-sidebar text-text-primary shadow-[2px_0_12px_rgba(124,92,191,0.06)] lg:flex">
       <motion.div className="flex h-full flex-col p-5">
         <div className="mb-8 rounded-card bg-sidebar-gradient p-4">
-          <Logo size="md" showText className="text-text-primary" />
+          <motion.div className="flex items-center gap-2.5">
+            <Image
+              src="/hiredmate-logo.png"
+              alt="HiredMate"
+              width={36}
+              height={36}
+              className="rounded-2xl"
+            />
+            <span
+              className="text-xl font-black tracking-tight"
+              style={{
+                fontFamily: "'Fredoka One', cursive",
+                background: 'linear-gradient(135deg, #7C5CBF, #9B7FD4)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              HiredMate
+            </span>
+          </motion.div>
         </div>
 
         <nav className="flex-1 space-y-6">
