@@ -8,15 +8,19 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = 'default', children, ...props }, ref) => {
     const variants = {
-      default: 'bg-white shadow-card rounded-card',
-      bordered: 'bg-white border-2 border-primary/30 rounded-card shadow-card',
-      gradient: 'bg-purple-gradient text-white rounded-card shadow-card',
+      default: 'rounded-card border border-border bg-card shadow-card',
+      bordered: 'rounded-card border border-border bg-card shadow-card',
+      gradient: 'rounded-card border border-transparent bg-purple-gradient text-white shadow-card',
     };
 
     return (
       <div
         ref={ref}
-        className={cn('p-6', variants[variant], className)}
+        className={cn(
+          'p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover',
+          variants[variant],
+          className
+        )}
         {...props}
       >
         {children}

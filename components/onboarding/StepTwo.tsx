@@ -45,13 +45,13 @@ export default function StepTwo({
 
   return (
     <div>
-      <h2 className="mb-2 text-2xl font-bold text-dark-text">Tell us about you</h2>
-      <p className="mb-8 text-body-text">
+      <h2 className="mb-2 text-2xl font-bold text-text-primary">Tell us about you</h2>
+      <p className="mb-8 text-text-secondary">
         We&apos;ll tailor questions to your specialty and experience
       </p>
 
       <div className="mb-8">
-        <label className="mb-3 block text-sm font-semibold text-dark-text">
+        <label className="mb-3 block text-sm font-semibold text-text-primary">
           Your specialty
         </label>
         <div className="flex flex-wrap gap-2">
@@ -64,7 +64,7 @@ export default function StepTwo({
                 'rounded-pill border-2 px-4 py-2 text-sm font-medium transition-all',
                 specialty === s
                   ? 'border-primary bg-primary text-white'
-                  : 'border-primary/40 bg-white text-primary hover:bg-light-bg'
+                  : 'border-primary/50 bg-card text-primary hover:bg-input'
               )}
             >
               {s}
@@ -74,7 +74,7 @@ export default function StepTwo({
       </div>
 
       <div className="mb-10">
-        <label className="mb-3 block text-sm font-semibold text-dark-text">
+        <label className="mb-3 block text-sm font-semibold text-text-primary">
           Experience level
         </label>
         <div className="space-y-2">
@@ -84,8 +84,8 @@ export default function StepTwo({
               className={cn(
                 'flex cursor-pointer items-center gap-3 rounded-card border-2 p-4 transition-all',
                 experienceLevel === level
-                  ? 'border-primary bg-light-bg'
-                  : 'border-primary/20 bg-white hover:border-primary/40'
+                  ? 'border-primary bg-input'
+                  : 'border-border bg-card hover:border-primary/50'
               )}
             >
               <input
@@ -95,7 +95,7 @@ export default function StepTwo({
                 onChange={() => onExperienceChange(level)}
                 className="h-4 w-4 accent-primary"
               />
-              <span className="text-sm font-medium text-dark-text">{level}</span>
+              <span className="text-sm font-medium text-text-primary">{level}</span>
             </label>
           ))}
         </div>
@@ -103,10 +103,10 @@ export default function StepTwo({
 
       <div className="flex gap-3">
         <Button variant="outline" onClick={onBack}>
-          ← Back
+          Back
         </Button>
         <Button onClick={onNext} disabled={!canContinue} className="flex-1">
-          Continue →
+          Continue
         </Button>
       </div>
     </div>

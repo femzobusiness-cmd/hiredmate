@@ -11,12 +11,12 @@ import { FileUp, Loader2, X } from 'lucide-react';
 const TIMELINES: {
   value: InterviewTimeline;
   label: string;
-  emoji: string;
+  tone: string;
 }[] = [
-  { value: 'Today/Tomorrow', label: 'Today/Tomorrow', emoji: '🔴' },
-  { value: 'This Week', label: 'This Week', emoji: '🟡' },
-  { value: 'Within a Month', label: 'Within a Month', emoji: '🟢' },
-  { value: 'Just Exploring', label: 'Just Exploring', emoji: '⚪' },
+  { value: 'Today/Tomorrow', label: 'Today/Tomorrow', tone: 'bg-red-400' },
+  { value: 'This Week', label: 'This Week', tone: 'bg-gold' },
+  { value: 'Within a Month', label: 'Within a Month', tone: 'bg-secondary' },
+  { value: 'Just Exploring', label: 'Just Exploring', tone: 'bg-text-muted' },
 ];
 
 interface StepThreeProps {
@@ -77,10 +77,10 @@ export default function StepThree({
 
   return (
     <div>
-      <h2 className="mb-2 text-2xl font-bold text-dark-text">
+      <h2 className="mb-2 text-2xl font-bold text-text-primary">
         Tell us about your interview
       </h2>
-      <p className="mb-8 text-body-text">
+      <p className="mb-8 text-text-secondary">
         Optional details help us personalize your prep
       </p>
 
@@ -101,7 +101,7 @@ export default function StepThree({
       </div>
 
       <div className="mb-6">
-        <label className="mb-3 block text-sm font-semibold text-dark-text">
+        <label className="mb-3 block text-sm font-semibold text-text-primary">
           Interview timeline
         </label>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -113,11 +113,11 @@ export default function StepThree({
               className={cn(
                 'flex items-center gap-2 rounded-card border-2 p-4 text-left text-sm font-medium transition-all',
                 interviewTimeline === t.value
-                  ? 'border-primary bg-light-bg text-primary'
-                  : 'border-primary/20 bg-white text-dark-text hover:border-primary/40'
+                  ? 'border-primary bg-input text-primary'
+                  : 'border-border bg-card text-text-primary hover:border-primary/50'
               )}
             >
-              <span>{t.emoji}</span>
+              <span className={cn('h-2.5 w-2.5 rounded-full', t.tone)} />
               {t.label}
             </button>
           ))}
@@ -125,7 +125,7 @@ export default function StepThree({
       </div>
 
       <div className="mb-10">
-        <label className="mb-3 block text-sm font-semibold text-dark-text">
+        <label className="mb-3 block text-sm font-semibold text-text-primary">
           Resume (optional)
         </label>
         <div
@@ -133,8 +133,8 @@ export default function StepThree({
           className={cn(
             'cursor-pointer rounded-card border-2 border-dashed p-8 text-center transition-all',
             isDragActive
-              ? 'border-primary bg-light-bg'
-              : 'border-primary/40 bg-white hover:border-primary hover:bg-light-bg/50',
+              ? 'border-primary bg-input'
+              : 'border-primary/50 bg-card hover:border-primary hover:bg-input/50',
             uploading && 'pointer-events-none opacity-60'
           )}
         >
@@ -144,7 +144,7 @@ export default function StepThree({
           ) : resumeFile ? (
             <div className="flex items-center justify-center gap-2">
               <FileUp className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium text-dark-text">
+              <span className="text-sm font-medium text-text-primary">
                 {resumeFile.name}
               </span>
               <button
@@ -153,18 +153,21 @@ export default function StepThree({
                   e.stopPropagation();
                   onResumeChange(null);
                 }}
-                className="ml-2 rounded-full p-1 hover:bg-light-bg"
+                className="ml-2 rounded-full p-1 hover:bg-input"
               >
-                <X className="h-4 w-4 text-body-text" />
+                <X className="h-4 w-4 text-text-secondary" />
               </button>
             </div>
           ) : (
             <>
               <FileUp className="mx-auto mb-3 h-10 w-10 text-primary" />
-              <p className="font-medium text-dark-text">
+              <p className="font-medium text-text-primary">
                 Drop your resume PDF here
               </p>
-              <p className="mt-1 text-sm text-body-text">or click to upload</p>
+              <p className="mt-1 text-sm text-text-secondary">or click to upload</p>
+              <p className="mt-2 text-xs text-text-muted">
+                We will pull key experience from PDFs under 5MB.
+              </p>
             </>
           )}
         </div>
@@ -173,10 +176,10 @@ export default function StepThree({
 
       <div className="flex gap-3">
         <Button variant="outline" onClick={onBack}>
-          ← Back
+          Back
         </Button>
         <Button onClick={onNext} disabled={!canContinue || uploading} className="flex-1">
-          Continue →
+          Continue
         </Button>
       </div>
     </div>

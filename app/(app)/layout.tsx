@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { MeshBackground } from '@/components/ui/MeshBackground';
 
 export const dynamic = 'force-dynamic';
 import { redirect } from 'next/navigation';
@@ -17,5 +18,10 @@ export default async function AppLayout({
     redirect('/login');
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <MeshBackground />
+      {children}
+    </>
+  );
 }

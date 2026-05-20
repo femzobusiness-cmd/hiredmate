@@ -14,5 +14,3 @@ export function getStripe(): Stripe {
   }
   return stripeInstance;
 }
-
-export const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID;

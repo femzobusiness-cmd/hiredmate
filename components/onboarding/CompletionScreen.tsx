@@ -2,13 +2,14 @@
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import { BookOpen, DollarSign, MessageSquare, PartyPopper } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const STATS = [
-  { label: '25 Clinical Scenarios Ready', icon: '🩺' },
-  { label: '8 Behavioral Questions', icon: '💬' },
-  { label: 'Salary Scripts Included', icon: '💰' },
+  { label: '25 Clinical Scenarios Ready', icon: BookOpen },
+  { label: '8 Behavioral Questions', icon: MessageSquare },
+  { label: 'Salary Scripts Included', icon: DollarSign },
 ];
 
 export default function CompletionScreen() {
@@ -44,27 +45,29 @@ export default function CompletionScreen() {
         />
       ))}
 
-      <div className="mb-6 text-6xl">🎉</div>
-      <h1 className="mb-4 text-3xl font-bold text-dark-text">
-        Your personalized prep is ready 🎉
+      <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-card border border-primary/30 bg-primary/10 text-primary">
+        <PartyPopper className="h-10 w-10" />
+      </div>
+      <h1 className="mb-4 text-3xl font-bold text-text-primary">
+        Your personalized prep is ready
       </h1>
-      <p className="mb-10 text-body-text">
+      <p className="mb-10 text-text-secondary">
         We&apos;ve built a custom plan based on your profile
       </p>
 
       <div className="mb-10 grid w-full max-w-lg grid-cols-1 gap-4 sm:grid-cols-3">
         {STATS.map((stat) => (
           <Card key={stat.label} className="text-center">
-            <span className="mb-2 block text-2xl">{stat.icon}</span>
-            <p className="text-sm font-semibold text-dark-text">{stat.label}</p>
+            <stat.icon className="mx-auto mb-3 h-6 w-6 text-primary" />
+            <p className="text-sm font-semibold text-text-primary">{stat.label}</p>
           </Card>
         ))}
       </div>
 
       <Button size="lg" onClick={() => router.push('/dashboard')}>
-        Start Practicing →
+        Start Practicing
       </Button>
-      <p className="mt-4 text-sm text-body-text">Redirecting to dashboard...</p>
+      <p className="mt-4 text-sm text-text-secondary">Redirecting to dashboard...</p>
     </div>
   );
 }

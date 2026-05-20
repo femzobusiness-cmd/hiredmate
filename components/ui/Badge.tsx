@@ -12,12 +12,12 @@ export default function Badge({
   ...props
 }: BadgeProps) {
   const variants = {
-    default: 'bg-light-bg text-primary',
-    success: 'bg-green-100 text-green-700',
-    warning: 'bg-yellow-100 text-yellow-700',
-    danger: 'bg-red-100 text-red-700',
-    outline: 'border border-primary/30 text-primary bg-white',
-    teal: 'bg-teal-100 text-teal-700',
+    default: 'border border-primary/20 bg-primary/10 text-primary',
+    success: 'bg-green-100 text-success',
+    warning: 'bg-amber-100 text-warning',
+    danger: 'bg-red-100 text-error',
+    outline: 'bg-primary-light text-primary',
+    teal: 'bg-teal-50 text-secondary',
   };
 
   return (

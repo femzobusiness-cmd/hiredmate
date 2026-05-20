@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 import { ButtonHTMLAttributes, forwardRef } from 'react';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
 }
@@ -25,12 +25,13 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const variants = {
       primary:
-        'bg-purple-gradient text-white shadow-card hover:opacity-90 disabled:opacity-60',
+        'bg-purple-gradient text-white shadow-button hover:scale-[1.02] hover:brightness-105 disabled:opacity-60',
       secondary:
-        'bg-light-bg text-primary border border-primary/20 hover:bg-primary/10',
+        'border border-primary bg-white text-primary hover:bg-primary-light',
       outline:
-        'bg-white text-primary border-2 border-primary hover:bg-light-bg',
-      ghost: 'bg-transparent text-primary hover:bg-light-bg',
+        'border border-primary bg-white text-primary hover:bg-primary-light',
+      ghost: 'bg-transparent text-primary hover:bg-primary-light',
+      danger: 'bg-gradient-to-r from-red-500 to-error text-white shadow-button hover:scale-[1.02] hover:brightness-105',
     };
 
     const sizes = {
@@ -44,7 +45,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          'inline-flex items-center justify-center gap-2 rounded-pill font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2 disabled:cursor-not-allowed',
+          'inline-flex items-center justify-center gap-2 rounded-pill font-semibold transition-all duration-150 focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:cursor-not-allowed',
           variants[variant],
           sizes[size],
           className

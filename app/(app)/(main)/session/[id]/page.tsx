@@ -35,10 +35,10 @@ export default async function SessionPage({ params }: PageProps) {
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-dark-text">
+          <h1 className="text-2xl font-bold text-text-primary">
             {practiceSession.title}
           </h1>
-          <p className="text-body-text">
+          <p className="text-text-secondary">
             {practiceSession.questions_count} questions ·{' '}
             {new Date(practiceSession.created_at).toLocaleDateString()}
           </p>
@@ -69,12 +69,12 @@ export default async function SessionPage({ params }: PageProps) {
                     </Badge>
                   )}
                 </div>
-                <p className="mb-3 font-medium text-dark-text">{a.question}</p>
-                <p className="mb-3 text-sm text-body-text">{a.answer}</p>
+                <p className="mb-3 font-medium text-text-primary">{a.question}</p>
+                <p className="mb-3 text-sm text-text-secondary">{a.answer}</p>
                 {feedback?.strengths?.[0] && (
-                  <div className="flex gap-2 rounded-card bg-light-bg p-3 text-sm">
+                  <div className="flex gap-2 rounded-card bg-input p-3 text-sm">
                     <CheckCircle className="h-4 w-4 shrink-0 text-green-600" />
-                    <span className="text-body-text">{feedback.strengths[0]}</span>
+                    <span className="text-text-secondary">{feedback.strengths[0]}</span>
                   </div>
                 )}
               </Card>
@@ -83,7 +83,7 @@ export default async function SessionPage({ params }: PageProps) {
         </div>
       ) : (
         <Card className="text-center py-12">
-          <p className="text-body-text">No answers recorded for this session yet.</p>
+          <p className="text-text-secondary">No answers recorded for this session yet.</p>
         </Card>
       )}
 

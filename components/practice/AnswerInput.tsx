@@ -20,7 +20,7 @@ export default function AnswerInput({
 }: AnswerInputProps) {
   return (
     <div className="space-y-4">
-      <label className="block text-sm font-semibold text-dark-text">
+      <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
         Your answer
       </label>
       <textarea
@@ -30,7 +30,7 @@ export default function AnswerInput({
         placeholder="Type your answer here... Use the STAR method for behavioral questions."
         rows={6}
         className={cn(
-          'w-full resize-none rounded-card border border-primary/20 bg-white px-4 py-3 text-dark-text placeholder:text-body-text/60 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20',
+          'w-full resize-none rounded-card border border-input-border bg-input px-4 py-3 text-text-primary placeholder:text-text-muted transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30',
           (disabled || loading) && 'opacity-60 cursor-not-allowed'
         )}
       />

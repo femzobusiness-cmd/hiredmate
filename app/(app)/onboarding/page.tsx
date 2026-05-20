@@ -13,6 +13,7 @@ import type {
   InterviewTimeline,
   Specialty,
 } from '@/lib/types';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
 
 const TOTAL_STEPS = 4;
@@ -49,13 +50,6 @@ export default function OnboardingPage() {
 
     setUploading(true);
     try {
-      const filePath = `${userId}/${Date.now()}-${resumeFile.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('resumes')
-        .upload(filePath, resumeFile);
-
-      if (uploadError) throw uploadError;
-
       const formData = new FormData();
       formData.append('file', resumeFile);
 
@@ -64,17 +58,26 @@ export default function OnboardingPage() {
         body: formData,
       });
 
-      let resumeText: string | null = null;
-      if (parseRes.ok) {
-        const parsed = await parseRes.json();
-        resumeText = parsed.text;
+      const parsed = (await parseRes.json()) as {
+        text?: string;
+        error?: string;
+      };
+
+      if (!parseRes.ok || !parsed.text) {
+        throw new Error(parsed.error || 'Unable to read text from this PDF');
       }
 
-      const { data: urlData } = supabase.storage
+      const filePath = `${userId}/${Date.now()}-${sanitizeFileName(resumeFile.name)}`;
+      const { error: uploadError } = await supabase.storage
         .from('resumes')
-        .getPublicUrl(filePath);
+        .upload(filePath, resumeFile, {
+          contentType: resumeFile.type,
+          upsert: false,
+        });
 
-      return { url: urlData.publicUrl, text: resumeText };
+      if (uploadError) throw uploadError;
+
+      return { url: filePath, text: parsed.text };
     } finally {
       setUploading(false);
     }
@@ -94,25 +97,34 @@ export default function OnboardingPage() {
       const { url: resumeUrl, text: resumeText } = await uploadResume(user.id);
 
       const interviewDate = getInterviewDate(interviewTimeline);
+      const profileData = {
+        user_id: user.id,
+        specialty,
+        experience_level: experienceLevel,
+        hospital_name: hospitalName || null,
+        job_title: jobTitle,
+        interview_timeline: interviewTimeline,
+        interview_date: interviewDate,
+        biggest_fears: fears,
+        resume_url: resumeUrl,
+        resume_text: resumeText,
+        onboarding_completed: true,
+        updated_at: new Date().toISOString(),
+      };
+
+      console.log('Saving profile...');
+      console.log('Profile data being saved:', profileData);
 
       const { error: updateError } = await supabase
         .from('user_profiles')
-        .upsert({
-          user_id: user.id,
-          specialty,
-          experience_level: experienceLevel,
-          hospital_name: hospitalName || null,
-          job_title: jobTitle,
-          interview_timeline: interviewTimeline,
-          interview_date: interviewDate,
-          biggest_fears: fears,
-          resume_url: resumeUrl,
-          resume_text: resumeText,
-          onboarding_completed: true,
-          updated_at: new Date().toISOString(),
+        .upsert(profileData, {
+          onConflict: 'user_id',
         });
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Supabase profile save error:', updateError);
+        throw updateError;
+      }
 
       await fetch('/api/generate-questions', {
         method: 'POST',
@@ -139,16 +151,17 @@ export default function OnboardingPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-8">
-        <div className="mb-2 flex justify-between text-sm text-body-text">
+        <div className="mb-2 flex justify-between text-sm text-text-secondary">
           <span>
             Step {step} of {TOTAL_STEPS}
           </span>
           <span>{Math.round((step / TOTAL_STEPS) * 100)}%</span>
         </div>
-        <div className="h-2 overflow-hidden rounded-pill bg-light-bg">
-          <div
+        <div className="h-1 overflow-hidden rounded-pill bg-border">
+          <motion.div
             className="h-full rounded-pill bg-purple-gradient transition-all duration-500"
-            style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
+            animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
           />
         </div>
       </div>
@@ -160,41 +173,51 @@ export default function OnboardingPage() {
           </p>
         )}
 
-        {step === 1 && <StepOne onNext={() => setStep(2)} />}
-        {step === 2 && (
-          <StepTwo
-            specialty={specialty}
-            experienceLevel={experienceLevel}
-            onSpecialtyChange={setSpecialty}
-            onExperienceChange={setExperienceLevel}
-            onNext={() => setStep(3)}
-            onBack={() => setStep(1)}
-          />
-        )}
-        {step === 3 && (
-          <StepThree
-            hospitalName={hospitalName}
-            jobTitle={jobTitle}
-            interviewTimeline={interviewTimeline}
-            resumeFile={resumeFile}
-            uploading={uploading}
-            onHospitalChange={setHospitalName}
-            onJobTitleChange={setJobTitle}
-            onTimelineChange={setInterviewTimeline}
-            onResumeChange={setResumeFile}
-            onNext={() => setStep(4)}
-            onBack={() => setStep(2)}
-          />
-        )}
-        {step === 4 && (
-          <StepFour
-            fears={fears}
-            loading={loading}
-            onToggleFear={toggleFear}
-            onSubmit={handleSubmit}
-            onBack={() => setStep(3)}
-          />
-        )}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -60 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          >
+            {step === 1 && <StepOne onNext={() => setStep(2)} />}
+            {step === 2 && (
+              <StepTwo
+                specialty={specialty}
+                experienceLevel={experienceLevel}
+                onSpecialtyChange={setSpecialty}
+                onExperienceChange={setExperienceLevel}
+                onNext={() => setStep(3)}
+                onBack={() => setStep(1)}
+              />
+            )}
+            {step === 3 && (
+              <StepThree
+                hospitalName={hospitalName}
+                jobTitle={jobTitle}
+                interviewTimeline={interviewTimeline}
+                resumeFile={resumeFile}
+                uploading={uploading}
+                onHospitalChange={setHospitalName}
+                onJobTitleChange={setJobTitle}
+                onTimelineChange={setInterviewTimeline}
+                onResumeChange={setResumeFile}
+                onNext={() => setStep(4)}
+                onBack={() => setStep(2)}
+              />
+            )}
+            {step === 4 && (
+              <StepFour
+                fears={fears}
+                loading={loading}
+                onToggleFear={toggleFear}
+                onSubmit={handleSubmit}
+                onBack={() => setStep(3)}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </Card>
     </div>
   );
@@ -217,4 +240,14 @@ function getInterviewDate(timeline: InterviewTimeline | null): string | null {
       return null;
   }
   return now.toISOString().split('T')[0];
+}
+
+function sanitizeFileName(fileName: string) {
+  const sanitized = fileName
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 120);
+
+  return sanitized || 'resume.pdf';
 }

@@ -3,7 +3,14 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import type { Database } from '@/lib/database.types';
 
-const authRoutes = ['/login', '/signup'];
+const publicRoutes = ['/', '/login', '/signup', '/pricing'];
+
+function isPublicRoute(pathname: string) {
+  return (
+    publicRoutes.includes(pathname) ||
+    pathname.startsWith('/auth/callback')
+  );
+}
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
@@ -16,18 +23,46 @@ export async function middleware(req: NextRequest) {
 
   res.headers.set('x-pathname', pathname);
 
-  if (authRoutes.some((route) => pathname.startsWith(route))) {
-    if (session) {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
-    }
+  if (isPublicRoute(pathname)) {
     return res;
   }
 
-  const protectedRoutes = ['/dashboard', '/onboarding', '/practice', '/session'];
-  if (protectedRoutes.some((route) => pathname.startsWith(route))) {
-    if (!session) {
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
+  if (!session) {
+    return NextResponse.redirect(new URL('/login', req.url));
+  }
+
+  const user = session.user;
+  const { data: existingProfile } = await supabase
+    .from('user_profiles')
+    .select('id, onboarding_completed')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  let onboardingCompleted = existingProfile?.onboarding_completed === true;
+
+  if (!existingProfile) {
+    const { data: createdProfile } = await supabase
+      .from('user_profiles')
+      .insert({
+        user_id: user.id,
+        first_name:
+          (user.user_metadata?.first_name as string | undefined) ||
+          (user.user_metadata?.full_name as string | undefined)?.split(' ')[0] ||
+          null,
+        onboarding_completed: false,
+      })
+      .select('onboarding_completed')
+      .maybeSingle();
+
+    onboardingCompleted = createdProfile?.onboarding_completed === true;
+  }
+
+  if (!onboardingCompleted && !pathname.startsWith('/onboarding')) {
+    return NextResponse.redirect(new URL('/onboarding', req.url));
+  }
+
+  if (onboardingCompleted && pathname.startsWith('/onboarding')) {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 
   return res;
@@ -35,11 +70,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/dashboard/:path*',
-    '/onboarding/:path*',
-    '/practice/:path*',
-    '/session/:path*',
-    '/login',
-    '/signup',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
   ],
 };

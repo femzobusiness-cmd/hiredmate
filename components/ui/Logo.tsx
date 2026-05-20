@@ -1,4 +1,4 @@
-import { Stethoscope } from 'lucide-react';
+import { Check, Stethoscope } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 interface LogoProps {
@@ -15,23 +15,29 @@ export default function Logo({
   light = false,
 }: LogoProps) {
   const sizes = {
-    sm: { icon: 'h-6 w-6', text: 'text-lg' },
-    md: { icon: 'h-8 w-8', text: 'text-xl' },
-    lg: { icon: 'h-10 w-10', text: 'text-2xl' },
+    sm: { icon: 'h-5 w-5', check: 'h-2.5 w-2.5', text: 'text-lg' },
+    md: { icon: 'h-7 w-7', check: 'h-3 w-3', text: 'text-xl' },
+    lg: { icon: 'h-9 w-9', check: 'h-4 w-4', text: 'text-2xl' },
   };
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <div
         className={cn(
-          'flex items-center justify-center rounded-full bg-white/20 p-2',
-          !light && 'bg-light-bg'
+          'relative flex items-center justify-center rounded-input bg-purple-gradient p-2 shadow-button',
+          light && 'border-primary/40 bg-primary/15'
         )}
       >
         <Stethoscope
           className={cn(
             sizes[size].icon,
-            light ? 'text-white' : 'text-primary'
+            'text-white'
+          )}
+        />
+        <Check
+          className={cn(
+            'absolute -right-1 -top-1 rounded-full bg-white p-0.5 text-primary',
+            sizes[size].check
           )}
         />
       </div>
@@ -40,7 +46,7 @@ export default function Logo({
           className={cn(
             'font-bold tracking-tight',
             sizes[size].text,
-            light ? 'text-white' : 'text-dark-text'
+            'text-text-primary'
           )}
         >
           Hired<span className="text-primary">Mate</span>

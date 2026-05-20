@@ -30,10 +30,10 @@ export default function StepFour({
 }: StepFourProps) {
   return (
     <div>
-      <h2 className="mb-2 text-2xl font-bold text-dark-text">
+      <h2 className="mb-2 text-2xl font-bold text-text-primary">
         What worries you most?
       </h2>
-      <p className="mb-8 text-body-text">Select all that apply</p>
+      <p className="mb-8 text-text-secondary">Select all that apply</p>
 
       <div className="mb-10 flex flex-wrap gap-2">
         {FEARS.map((fear) => {
@@ -47,7 +47,7 @@ export default function StepFour({
                 'rounded-pill border-2 px-4 py-2.5 text-sm font-medium transition-all',
                 selected
                   ? 'border-primary bg-primary text-white'
-                  : 'border-primary/40 bg-white text-primary hover:bg-light-bg'
+                  : 'border-primary/50 bg-card text-primary hover:bg-input'
               )}
             >
               {fear}
@@ -58,7 +58,7 @@ export default function StepFour({
 
       <div className="flex gap-3">
         <Button variant="outline" onClick={onBack} disabled={loading}>
-          ← Back
+          Back
         </Button>
         <Button
           size="lg"
@@ -67,7 +67,7 @@ export default function StepFour({
           disabled={fears.length === 0}
           className="flex-1"
         >
-          Generate My Prep →
+          Generate My Prep
         </Button>
       </div>
     </div>

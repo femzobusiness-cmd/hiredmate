@@ -1,4 +1,7 @@
 import { getAnthropic } from '@/lib/anthropic';
+import { trackQuestEvents } from '@/lib/quest-tracking';
+import { updateSkillProgress } from '@/lib/skill-progress';
+import { inferSkillKey } from '@/lib/skills';
 import { createSupabaseRouteClient } from '@/lib/supabase/route';
 import { NextResponse } from 'next/server';
 
@@ -15,7 +18,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { question, answer, sessionId, specialty } = await request.json();
+    const {
+      question,
+      answer,
+      sessionId,
+      specialty,
+      skillKey,
+      mode,
+      hospital_name,
+      hospital_context,
+    } = await request.json();
 
     if (!question || !answer) {
       return NextResponse.json(
@@ -24,13 +36,18 @@ export async function POST(request: Request) {
       );
     }
 
+    const hospitalPrefix =
+      mode === 'hospital' && hospital_context
+        ? `You are evaluating a nurse's interview answer for a position at ${hospital_name || 'this hospital'}. ${hospital_context}. Score on: alignment with hospital values, STAR structure, specificity, and clinical competence.\n\n`
+        : '';
+
     const message = await getAnthropic().messages.create({
       model: MODEL,
       max_tokens: 1500,
       messages: [
         {
           role: 'user',
-          content: `You are an expert nurse interview coach evaluating a ${specialty || 'nursing'} interview answer.
+          content: `${hospitalPrefix}You are an expert nurse interview coach evaluating a ${specialty || 'nursing'} interview answer.
 
 Question: ${question}
 Candidate's Answer: ${answer}
@@ -40,6 +57,7 @@ Provide feedback in JSON format:
   "score": <number 0-100>,
   "strengths": ["..."],
   "improvements": ["..."],
+  "feedback": "2-3 sentence overall summary",
   "sample_answer": "A stronger version of their answer in 2-3 sentences"
 }
 
@@ -58,6 +76,9 @@ Be encouraging but honest. Score based on clinical accuracy, STAR method usage f
       if (!jsonMatch) throw new Error('No JSON');
       const feedback = JSON.parse(jsonMatch[0]);
 
+      const resolvedSkillKey =
+        skillKey || inferSkillKey(`${question} ${answer || ''}`);
+
       if (sessionId && feedback) {
         await supabase.from('session_answers').insert({
           session_id: sessionId,
@@ -65,10 +86,26 @@ Be encouraging but honest. Score based on clinical accuracy, STAR method usage f
           answer,
           score: feedback.score,
           feedback: JSON.stringify(feedback),
+          skill_key: resolvedSkillKey,
         });
       }
 
-      return NextResponse.json(feedback);
+      const skillLevelUp = await updateSkillProgress(
+        supabase,
+        session.user.id,
+        resolvedSkillKey,
+        feedback.score
+      );
+
+      const { completedQuests } = await trackQuestEvents(supabase, session.user.id, {
+        questionsAnswered: 1,
+        score: feedback.score,
+        perfectScore: feedback.score === 100,
+        mode: 'written',
+        skillXpEarned: skillLevelUp?.xpEarned || 0,
+      });
+
+      return NextResponse.json({ ...feedback, skillLevelUp, completedQuests });
     } catch (e) {
       console.error('Failed to parse score response:', e);
       return NextResponse.json({
@@ -76,6 +113,7 @@ Be encouraging but honest. Score based on clinical accuracy, STAR method usage f
         feedback: 'Good answer. Keep practicing.',
         strengths: ['Structured response'],
         improvements: ['Add more clinical detail'],
+        sample_answer: '',
         model_answer: '',
       });
     }

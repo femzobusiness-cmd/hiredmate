@@ -29,11 +29,11 @@ export default function QuestionCard({
         <Badge variant={category === 'multiple_choice' ? 'teal' : 'outline'}>
           {categoryLabels[category]}
         </Badge>
-        <span className="text-sm text-body-text">
+        <span className="text-sm text-text-muted">
           Question {questionNumber} of {totalQuestions}
         </span>
       </div>
-      <p className="text-lg font-medium leading-relaxed text-dark-text">
+      <p className="border-l-2 border-primary pl-4 text-xl font-semibold leading-relaxed text-text-primary">
         {question}
       </p>
     </Card>
