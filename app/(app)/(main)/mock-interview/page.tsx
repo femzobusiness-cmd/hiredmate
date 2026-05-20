@@ -3,8 +3,8 @@
 import {
   INTERVIEW_HOSPITAL_OPTIONS,
   INTERVIEW_SPECIALTIES,
+  MIN_TOPICS_OPTIONS,
   PERSONALITY_MODES,
-  QUESTION_COUNT_OPTIONS,
   type PersonalityMode,
 } from '@/lib/mock-interview';
 import { cn } from '@/utils/cn';
@@ -16,17 +16,19 @@ const EXPECT_ITEMS = [
   {
     emoji: '🎯',
     title: 'Real back-and-forth',
-    description: 'AI asks follow-ups and challenges weak answers',
+    description:
+      'AI pushes back on weak answers and asks follow-ups until satisfied',
   },
   {
     emoji: '🧠',
-    title: 'Adapts to you',
-    description: 'Gets harder or easier based on your responses',
+    title: 'Performance-aware',
+    description:
+      'The interview extends if you struggle — just like a real one',
   },
   {
     emoji: '📊',
     title: 'Full debrief',
-    description: 'Score, best answers, weakest answers, and improvements',
+    description: 'Honest score, question breakdown, and specific improvements',
   },
 ];
 
@@ -35,13 +37,13 @@ export default function MockInterviewSetupPage() {
   const [personality, setPersonality] = useState<PersonalityMode>('neutral');
   const [specialty, setSpecialty] = useState<string>(INTERVIEW_SPECIALTIES[0]);
   const [hospital, setHospital] = useState('');
-  const [questionCount, setQuestionCount] = useState<number>(5);
+  const [minTopics, setMinTopics] = useState<number>(5);
 
   const startInterview = () => {
     const params = new URLSearchParams({
       personality,
       specialty,
-      questions: String(questionCount),
+      questions: String(minTopics),
     });
     if (hospital) params.set('hospital', hospital);
     router.push(`/mock-interview/session?${params.toString()}`);
@@ -160,17 +162,17 @@ export default function MockInterviewSetupPage() {
           className="mt-6"
         >
           <p className="mb-3 text-sm font-semibold text-[#1a1a2e]">
-            How many questions?
+            Minimum topics to cover
           </p>
           <div className="flex gap-3">
-            {QUESTION_COUNT_OPTIONS.map((count) => (
+            {MIN_TOPICS_OPTIONS.map((count) => (
               <button
                 key={count}
                 type="button"
-                onClick={() => setQuestionCount(count)}
+                onClick={() => setMinTopics(count)}
                 className={cn(
                   'rounded-full px-6 py-2.5 text-sm font-bold transition-all',
-                  questionCount === count
+                  minTopics === count
                     ? 'bg-[#7C5CBF] text-white shadow-md'
                     : 'bg-white text-[#7C5CBF] shadow-sm hover:bg-[#7C5CBF]/10'
                 )}
@@ -179,6 +181,9 @@ export default function MockInterviewSetupPage() {
               </button>
             ))}
           </div>
+          <p className="mt-2 text-xs text-gray-500">
+            The AI may ask more if you need to demonstrate your skills further.
+          </p>
         </motion.section>
 
         <motion.section

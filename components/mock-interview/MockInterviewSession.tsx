@@ -24,7 +24,7 @@ export function MockInterviewSession() {
   const personality = (searchParams.get('personality') || 'neutral') as PersonalityMode;
   const specialty = searchParams.get('specialty') || 'General Nursing';
   const hospitalId = searchParams.get('hospital') || '';
-  const maxQuestions = Number(searchParams.get('questions') || '5');
+  const minQuestions = Number(searchParams.get('questions') || '5');
   const config = getPersonalityConfig(personality);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -32,7 +32,8 @@ export function MockInterviewSession() {
   const [avatarState, setAvatarState] = useState<'idle' | 'thinking' | 'speaking'>('idle');
   const [isLoading, setIsLoading] = useState(false);
   const [interviewStarted, setInterviewStarted] = useState(false);
-  const [questionCount, setQuestionCount] = useState(0);
+  const [currentTopicCount, setCurrentTopicCount] = useState(0);
+  const [weakAnswerStreak, setWeakAnswerStreak] = useState(0);
   const [interviewEnded, setInterviewEnded] = useState(false);
   const [showDebriefModal, setShowDebriefModal] = useState(false);
   const [sessionStartTime] = useState(() => new Date());
@@ -64,8 +65,24 @@ export function MockInterviewSession() {
     });
   }, [messages, isLoading]);
 
+  const applyTurnState = useCallback(
+    (turnType: 'opening' | 'follow_up' | 'new_topic' | 'closing') => {
+      if (turnType === 'follow_up') {
+        setWeakAnswerStreak((s) => s + 1);
+      } else if (turnType === 'new_topic' || turnType === 'opening') {
+        setCurrentTopicCount((c) => c + 1);
+        setWeakAnswerStreak(0);
+      }
+    },
+    []
+  );
+
   const callInterviewApi = useCallback(
-    async (history: ChatMessage[]) => {
+    async (
+      history: ChatMessage[],
+      topicCount: number,
+      weakStreak: number
+    ) => {
       const res = await fetch('/api/mock-interview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -77,30 +94,34 @@ export function MockInterviewSession() {
           personality,
           specialty,
           hospital_id: hospitalId || null,
-          maxQuestions,
-          currentQuestionCount:
-            history.filter((m) => m.role === 'assistant').length + 1,
+          minQuestions,
+          currentTopicCount: topicCount,
+          weakAnswerStreak: weakStreak,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Interview API failed');
-      return data as { message: string; interviewComplete: boolean };
+      return data as {
+        message: string;
+        interviewComplete: boolean;
+        turnType: 'opening' | 'follow_up' | 'new_topic' | 'closing';
+      };
     },
-    [personality, specialty, hospitalId, maxQuestions]
+    [personality, specialty, hospitalId, minQuestions]
   );
 
   const startInterview = useCallback(async () => {
     setIsLoading(true);
     setAvatarState('thinking');
     try {
-      const data = await callInterviewApi([]);
+      const data = await callInterviewApi([], 0, 0);
       const aiMessage: ChatMessage = {
         role: 'assistant',
         content: data.message,
         timestamp: new Date(),
       };
       setMessages([aiMessage]);
-      setQuestionCount(1);
+      applyTurnState(data.turnType || 'opening');
       setInterviewStarted(true);
       setAvatarState('speaking');
       if (data.interviewComplete) setInterviewEnded(true);
@@ -110,7 +131,7 @@ export function MockInterviewSession() {
     } finally {
       setIsLoading(false);
     }
-  }, [callInterviewApi]);
+  }, [callInterviewApi, applyTurnState]);
 
   useEffect(() => {
     if (!interviewStarted && messages.length === 0) {
@@ -138,14 +159,18 @@ export function MockInterviewSession() {
     }
 
     try {
-      const data = await callInterviewApi(nextHistory);
+      const data = await callInterviewApi(
+        nextHistory,
+        currentTopicCount,
+        weakAnswerStreak
+      );
       const aiMessage: ChatMessage = {
         role: 'assistant',
         content: data.message,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
-      setQuestionCount((c) => c + 1);
+      applyTurnState(data.turnType || 'new_topic');
       setAvatarState('speaking');
       if (data.interviewComplete) setInterviewEnded(true);
       setTimeout(() => setAvatarState('idle'), 2000);
@@ -209,9 +234,6 @@ export function MockInterviewSession() {
     .toString()
     .padStart(2, '0')}:${(elapsedSeconds % 60).toString().padStart(2, '0')}`;
 
-  const progressPercent =
-    maxQuestions > 0 ? Math.min(100, (questionCount / maxQuestions) * 100) : 0;
-
   return (
     <motion.div className="flex h-[calc(100vh-4rem)] min-h-[600px] bg-[#F8F7FF] lg:h-screen">
       <aside className="hidden w-72 flex-col border-r border-[#7C5CBF]/10 bg-white p-5 shadow-sm lg:flex">
@@ -233,15 +255,11 @@ export function MockInterviewSession() {
             </p>
           )}
           <p className="mt-4 text-xs font-semibold text-[#7C5CBF]">
-            Question {Math.min(questionCount, maxQuestions)} of {maxQuestions}
+            Topics covered: {currentTopicCount}
           </p>
-          <motion.div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
-            <motion.div
-              className="h-full rounded-full bg-[#7C5CBF]"
-              animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 0.4 }}
-            />
-          </motion.div>
+          <p className="mt-1 text-[10px] text-gray-500">
+            Minimum {minQuestions} · interviewer decides when you&apos;re ready
+          </p>
         </div>
 
         <button
@@ -267,7 +285,7 @@ export function MockInterviewSession() {
           )}
         </AnimatePresence>
 
-        {userAnswerCount >= 2 && (
+        {userAnswerCount >= 3 && (
           <button
             type="button"
             onClick={() => setShowDebriefModal(true)}
@@ -287,7 +305,7 @@ export function MockInterviewSession() {
             {config.name}
           </span>
           <span className="text-sm font-semibold text-gray-600 lg:hidden">
-            Q {Math.min(questionCount, maxQuestions)}/{maxQuestions}
+            Topics: {currentTopicCount}
           </span>
           <span className="font-mono text-sm font-bold text-[#7C5CBF]">
             {timerDisplay}
@@ -426,16 +444,23 @@ export function MockInterviewSession() {
             </div>
           </div>
 
-          {(interviewEnded || questionCount >= maxQuestions) && !isLoading && (
-            <div className="border-t border-[#7C5CBF]/10 bg-[#F8F7FF] px-4 py-3 text-center">
+          {interviewEnded && !isLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="border-t border-[#7C5CBF]/10 bg-[#F8F7FF] px-4 py-3 text-center"
+            >
+              <p className="mb-2 text-sm text-gray-600">
+                The interviewer has concluded this session.
+              </p>
               <button
                 type="button"
                 onClick={() => setShowDebriefModal(true)}
                 className="rounded-full bg-gradient-to-r from-[#7C5CBF] to-[#9B7FD4] px-8 py-3 text-sm font-bold text-white shadow-lg"
               >
-                End Interview →
+                View Your Debrief →
               </button>
-            </div>
+            </motion.div>
           )}
 
           <div className="border-t border-[#7C5CBF]/10 bg-white px-4 py-4 shadow-[0_-4px_20px_rgba(124,92,191,0.06)]">

@@ -23,7 +23,13 @@ const ANALYZING_LINES = [
   'Calculating confidence score...',
 ];
 
-type SessionStage = 'question' | 'recording' | 'results';
+type SessionStage = 'question' | 'recording' | 'analyzing' | 'results';
+
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
 
 function ScoreCircle({ score }: { score: number }) {
   const [display, setDisplay] = useState(0);
@@ -187,6 +193,7 @@ export function VoicePracticeClient() {
 
   const analyzeVoiceAnswer = async (text: string, duration: number) => {
     setIsAnalyzing(true);
+    setSessionStage('analyzing');
     try {
       const res = await fetch('/api/voice-analyze', {
         method: 'POST',
@@ -203,19 +210,25 @@ export function VoicePracticeClient() {
         const result = data as VoiceAnalysisResult;
         setAnalysisResult(result);
         await saveSession(result, text, duration);
+        setSessionStage('results');
+      } else {
+        console.error(data.error || 'Analysis failed');
+        setSessionStage('question');
       }
     } catch (e) {
       console.error(e);
+      setSessionStage('question');
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const handleTranscriptReady = (text: string, duration: number) => {
+  const handleTranscriptReady = async (text: string, duration: number) => {
     setTranscript(text);
     setDurationSeconds(duration);
-    setSessionStage('results');
-    analyzeVoiceAnswer(text, duration);
+    setIsAnalyzing(true);
+    setSessionStage('analyzing');
+    await analyzeVoiceAnswer(text, duration);
   };
 
   const tryAgain = () => {
@@ -307,23 +320,25 @@ export function VoicePracticeClient() {
           )}
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mt-6"
-        >
-          <VoiceRecorder
-            key={recorderKey}
-            isDisabled={isLoadingQuestion || isAnalyzing}
-            onRecordingStart={() => setSessionStage('recording')}
-            onRecordingStop={() => {}}
-            onTranscriptReady={handleTranscriptReady}
-          />
-        </motion.div>
+        {(sessionStage === 'question' || sessionStage === 'recording') && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mt-6"
+          >
+            <VoiceRecorder
+              key={recorderKey}
+              isDisabled={isLoadingQuestion || isAnalyzing}
+              onRecordingStart={() => setSessionStage('recording')}
+              onRecordingStop={() => {}}
+              onTranscriptReady={handleTranscriptReady}
+            />
+          </motion.div>
+        )}
 
         <AnimatePresence>
-          {isAnalyzing && (
+          {(isAnalyzing || sessionStage === 'analyzing') && (
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -353,12 +368,15 @@ export function VoicePracticeClient() {
           )}
         </AnimatePresence>
 
-        {analysisResult && !isAnalyzing && (
+        {sessionStage === 'results' && analysisResult && !isAnalyzing && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="mt-8 space-y-6"
           >
+            <p className="text-center text-sm font-medium text-[#7C5CBF]">
+              You spoke for {formatDuration(durationSeconds)}
+            </p>
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}

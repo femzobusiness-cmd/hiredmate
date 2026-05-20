@@ -1,7 +1,7 @@
 import { getAnthropic, CLAUDE_MODEL } from '@/lib/anthropic';
 import {
   buildInterviewSystemPrompt,
-  parseInterviewComplete,
+  parseInterviewResponse,
   type PersonalityMode,
 } from '@/lib/mock-interview';
 import { createSupabaseRouteClient } from '@/lib/supabase/route';
@@ -31,17 +31,17 @@ export async function POST(request: Request) {
     const personality = (body.personality || 'neutral') as PersonalityMode;
     const specialty = body.specialty || 'General Nursing';
     const hospitalId = body.hospital_id || body.hospitalId || null;
-    const maxQuestions = Number(body.maxQuestions) || 5;
-    const currentQuestionCount =
-      Number(body.currentQuestionCount) ||
-      messages.filter((m) => m.role === 'assistant').length + 1;
+    const minQuestions = Number(body.minQuestions ?? body.maxQuestions) || 5;
+    const currentTopicCount = Number(body.currentTopicCount) || 0;
+    const weakAnswerStreak = Number(body.weakAnswerStreak) || 0;
 
     const systemPrompt = buildInterviewSystemPrompt({
       personality,
       specialty,
       hospitalId,
-      maxQuestions,
-      currentQuestionCount: Math.min(currentQuestionCount, maxQuestions),
+      minQuestions,
+      currentTopicCount,
+      weakAnswerStreak,
     });
 
     const anthropicMessages =
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
             {
               role: 'user' as const,
               content:
-                'Begin the interview now. Introduce yourself briefly and ask your first question.',
+                'Begin the interview now. Introduce yourself briefly and ask your first question. Use [NEW_TOPIC] before the question.',
             },
           ]
         : messages.map((m) => ({
@@ -73,9 +73,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const { message, interviewComplete } = parseInterviewComplete(content.text);
+    const { message, interviewComplete, turnType } = parseInterviewResponse(
+      content.text
+    );
 
-    return NextResponse.json({ message, interviewComplete });
+    return NextResponse.json({
+      message,
+      interviewComplete,
+      turnType,
+    });
   } catch (error: unknown) {
     const err = error as Error;
     console.error('Mock interview error:', err.message);

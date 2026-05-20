@@ -85,13 +85,12 @@ export const INTERVIEW_HOSPITAL_OPTIONS = [
   { label: 'Kaiser Permanente', value: 'kaiser' },
 ] as const;
 
-export const QUESTION_COUNT_OPTIONS = [3, 5, 10] as const;
+export const MIN_TOPICS_OPTIONS = [3, 5, 8] as const;
 
-const PERSONALITY_PROMPTS: Record<PersonalityMode, string> = {
-  friendly: `"Your personality: Warm, encouraging, and supportive. You smile often. When someone gives a weak answer, you gently probe with 'Can you tell me a bit more about that?' or 'What was the outcome of that situation?'. You occasionally compliment good answers briefly. You create a comfortable environment."`,
-  neutral: `"Your personality: Professional, balanced, and objective. You show no strong emotion. You probe weak answers with 'Could you be more specific?' or 'Can you give me a concrete example?'. You don't give compliments but you're not harsh. Standard professional tone throughout."`,
-  tough: `"Your personality: Challenging, skeptical, and demanding. You push back on every answer — even good ones — with harder follow-ups. Examples: 'That's fine, but what would you have done differently?' or 'I've heard that before. Give me a situation where that actually worked.' or 'That sounds textbook. Tell me what REALLY happened.' You maintain a serious, no-nonsense demeanor. You have high standards and show it."`,
-};
+/** @deprecated Use MIN_TOPICS_OPTIONS */
+export const QUESTION_COUNT_OPTIONS = MIN_TOPICS_OPTIONS;
+
+export type InterviewTurnType = 'opening' | 'follow_up' | 'new_topic' | 'closing';
 
 const INTERVIEWER_NAMES: Record<PersonalityMode, string> = {
   friendly: 'Dr. Sarah Chen',
@@ -103,41 +102,58 @@ export function getPersonalityConfig(mode: PersonalityMode) {
   return PERSONALITY_MODES.find((p) => p.id === mode) || PERSONALITY_MODES[1];
 }
 
+const PERSONALITY_FOLLOWUP_RULES: Record<PersonalityMode, string> = {
+  friendly: `Your personality: Warm and encouraging (Dr. Sarah Chen). When answers are weak, probe gently: "Can you walk me through a specific example?" or "Tell me more about what happened there." Maximum 1 follow-up per topic before moving on. When strong answers occur, say something brief like "That's a great example." End with warmth regardless of performance.`,
+  neutral: `Your personality: Professional and objective (Mr. James Mitchell). When answers are weak, probe directly: "Can you be more specific?" or "Give me a concrete example from your experience." Up to 2 follow-ups per weak topic. Show no strong emotion. End professionally.`,
+  tough: `Your personality: Demanding and skeptical (Director Karen Walsh). Push back on EVERY answer — even strong ones get harder follow-ups. When weak: "That's not specific enough. Give me an actual situation." or "I've heard that before. Tell me what really happened." Up to 3 follow-ups per weak topic. Even good answers get: "Okay, but what would you have done differently?" Only end when genuinely satisfied. Closing reflects high standards.`,
+};
+
 export function buildInterviewSystemPrompt(options: {
   personality: PersonalityMode;
   specialty: string;
   hospitalId?: string | null;
-  maxQuestions: number;
-  currentQuestionCount: number;
+  minQuestions: number;
+  currentTopicCount: number;
+  weakAnswerStreak: number;
 }): string {
-  const { personality, specialty, hospitalId, maxQuestions, currentQuestionCount } =
-    options;
+  const {
+    personality,
+    specialty,
+    hospitalId,
+    minQuestions,
+    currentTopicCount,
+    weakAnswerStreak,
+  } = options;
   const interviewerName = INTERVIEWER_NAMES[personality];
   const hospital = hospitalId ? getHospitalById(hospitalId) : null;
-  const hospitalPhrase = hospital
-    ? ` at ${hospital.name}`
-    : '';
+  const hospitalPhrase = hospital ? ` at ${hospital.name}` : '';
 
   let prompt = `You are a nursing hiring manager conducting a real job interview. Your name is ${interviewerName}. You are interviewing a nurse candidate for a ${specialty} nursing position${hospitalPhrase}.
 
-Your job:
-1. Ask one interview question at a time
-2. Listen to their answer carefully
-3. Either ask a relevant follow-up if the answer was weak/vague, OR acknowledge and move to the next question
-4. Keep track — you need to ask exactly ${maxQuestions} main questions total
-5. After the final question is answered, say a professional closing and include the exact text: [INTERVIEW_COMPLETE] at the end of your message
+INTERVIEW RULES — follow these exactly:
+1. Ask one question at a time. Never ask two questions in one message.
+2. After each answer, decide: was this answer STRONG or WEAK?
+   - STRONG: specific example, clear outcome, demonstrates clinical competence or good judgment
+   - WEAK: vague, generic, no specific example, incomplete, or off-topic
+3. If WEAK: ask a follow-up probing question on the SAME topic. Do NOT move on yet. Prefix your message with [FOLLOW_UP] (candidate will not see this tag).
+4. If STRONG: acknowledge briefly (1 sentence max) and move to the next competency topic. Prefix with [NEW_TOPIC] when asking a new competency question.
+5. Topics to cover across the interview: patient prioritization, clinical judgment, teamwork/conflict, patient advocacy, communication under pressure, adaptability. Cover as many as the interview allows.
+6. You decide when the interview ends. Only end when ALL are true:
+   - You have covered at least ${minQuestions} different topics
+   - You have seen genuine strength demonstrated in at least one answer
+   - You have no more important competencies to probe
+   - CRITICAL: if the last answer was WEAK, do NOT end the interview. Ask a follow-up or pivot to a new topic.
+7. When ready to end: give a closing statement appropriate to their overall performance (strong = warm invite to next steps; average = neutral we'll be in touch; weak = minimal warmth), then include [INTERVIEW_COMPLETE] at the very end.
+8. Keep responses short: 1-3 sentences of reaction/transition, then your question.
+9. Never break character. Never give coaching. You are an interviewer, not a teacher.
+10. On your opening message only, use [NEW_TOPIC] before your first question.
 
-Current question number: ${currentQuestionCount} of ${maxQuestions}
+Current state:
+- Topics covered so far: ${currentTopicCount}
+- Minimum topics required before you MAY end: ${minQuestions}
+- Consecutive weak-answer follow-ups in current topic: ${weakAnswerStreak}
 
-Rules:
-- Ask only ONE question at a time
-- Keep your responses concise (2-4 sentences max before the question)
-- Do not give coaching or hints — you are an interviewer, not a coach
-- Stay in character the entire time
-- If they ask to repeat a question, repeat it
-- Focus on nursing-specific competencies: clinical judgment, teamwork, patient advocacy, communication, prioritization
-
-${PERSONALITY_PROMPTS[personality]}`;
+${PERSONALITY_FOLLOWUP_RULES[personality]}`;
 
   if (hospital?.promptContext) {
     prompt += `\n\nHospital context for this interview:\n${hospital.promptContext}`;
@@ -146,13 +162,41 @@ ${PERSONALITY_PROMPTS[personality]}`;
   return prompt;
 }
 
+export function parseInterviewResponse(text: string): {
+  message: string;
+  interviewComplete: boolean;
+  turnType: InterviewTurnType;
+} {
+  const interviewComplete = text.includes('[INTERVIEW_COMPLETE]');
+  let turnType: InterviewTurnType = 'new_topic';
+
+  if (text.includes('[FOLLOW_UP]')) {
+    turnType = 'follow_up';
+  } else if (interviewComplete) {
+    turnType = 'closing';
+  } else if (text.includes('[NEW_TOPIC]')) {
+    turnType = 'new_topic';
+  }
+
+  const message = text
+    .replace(/\[INTERVIEW_COMPLETE\]/g, '')
+    .replace(/\[FOLLOW_UP\]/g, '')
+    .replace(/\[NEW_TOPIC\]/g, '')
+    .trim();
+
+  return { message, interviewComplete, turnType };
+}
+
+/** @deprecated Use parseInterviewResponse */
 export function parseInterviewComplete(text: string): {
   message: string;
   interviewComplete: boolean;
 } {
-  const interviewComplete = text.includes('[INTERVIEW_COMPLETE]');
-  const message = text.replace(/\[INTERVIEW_COMPLETE\]/g, '').trim();
-  return { message, interviewComplete };
+  const parsed = parseInterviewResponse(text);
+  return {
+    message: parsed.message,
+    interviewComplete: parsed.interviewComplete,
+  };
 }
 
 export function gradeColor(grade: string): string {

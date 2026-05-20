@@ -2,7 +2,7 @@
 
 import { cn } from '@/utils/cn';
 import { motion } from 'framer-motion';
-import { Check, Mic, Square } from 'lucide-react';
+import { Mic, Square } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 type RecordingState = 'idle' | 'recording' | 'processing' | 'done';
@@ -19,7 +19,7 @@ const BAR_COUNT = 60;
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
 function WaveformBars({ data }: { data: number[] }) {
@@ -148,10 +148,11 @@ export default function VoiceRecorder({
       const transcript =
         typeof data.transcript === 'string' ? data.transcript : '';
       onTranscriptReady(transcript, duration);
-      setRecordingState('done');
+      setRecordingState('idle');
+      setWaveformData(new Array(BAR_COUNT).fill(0.1));
     } catch {
       onTranscriptReady('', duration);
-      setRecordingState('done');
+      setRecordingState('idle');
     }
   };
 
@@ -232,13 +233,6 @@ export default function VoiceRecorder({
     setWaveformData(new Array(BAR_COUNT).fill(0.1));
   };
 
-  useEffect(() => {
-    if (recordingState === 'done') {
-      const timeout = setTimeout(resetRecorder, 1200);
-      return () => clearTimeout(timeout);
-    }
-  }, [recordingState]);
-
   return (
     <div
       className={cn(
@@ -278,17 +272,13 @@ export default function VoiceRecorder({
 
       {recordingState === 'recording' && (
         <motion.div className="flex flex-col items-center">
-          <motion.div className="mb-4 flex items-center gap-2">
-            <motion.span
-              className="h-2.5 w-2.5 rounded-full bg-red-500"
-              animate={{ opacity: [1, 0.2, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
-            />
-            <span className="text-2xl font-black text-[#1a1a2e]">
+          <WaveformBars data={waveformData} />
+          <div className="mt-4 flex items-center gap-2">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
+            <span className="text-2xl font-bold text-gray-700">
               {formatTime(durationSeconds)}
             </span>
-          </motion.div>
-          <WaveformBars data={waveformData} />
+          </div>
           <button
             type="button"
             onClick={stopRecording}
@@ -300,50 +290,36 @@ export default function VoiceRecorder({
         </motion.div>
       )}
 
-      {(recordingState === 'processing' || recordingState === 'done') && (
+      {recordingState === 'processing' && (
         <motion.div className="relative flex flex-col items-center">
           <WaveformBars data={waveformData} />
-          <p className="mt-2 text-sm font-bold text-[#1a1a2e]">
+          <p className="mt-4 text-2xl font-bold text-gray-700">
             {formatTime(durationSeconds)}
           </p>
-
-          {recordingState === 'processing' && (
-            <motion.div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                className="h-10 w-10 rounded-full border-4 border-[#7C5CBF]/20 border-t-[#7C5CBF]"
-              />
-              <p className="mt-4 font-bold text-[#7C5CBF]">
-                Transcribing your answer...
-              </p>
-              <motion.div className="mt-2 flex gap-1">
-                {[0, 1, 2].map((i) => (
-                  <motion.span
-                    key={i}
-                    className="h-2 w-2 rounded-full bg-[#7C5CBF]"
-                    animate={{ opacity: [0.3, 1, 0.3] }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                      delay: i * 0.2,
-                    }}
-                  />
-                ))}
-              </motion.div>
-            </motion.div>
-          )}
-
-          {recordingState === 'done' && (
+          <motion.div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80">
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="mt-4 flex flex-col items-center text-green-600"
-            >
-              <Check className="h-10 w-10" />
-              <p className="mt-2 font-bold">Transcribed!</p>
-            </motion.div>
-          )}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+              className="h-10 w-10 rounded-full border-4 border-[#7C5CBF]/20 border-t-[#7C5CBF]"
+            />
+            <p className="mt-4 font-bold text-[#7C5CBF]">
+              Transcribing your answer...
+            </p>
+            <div className="mt-2 flex gap-1">
+              {[0, 1, 2].map((i) => (
+                <motion.span
+                  key={i}
+                  className="h-2 w-2 rounded-full bg-[#7C5CBF]"
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    delay: i * 0.2,
+                  }}
+                />
+              ))}
+            </div>
+          </motion.div>
         </motion.div>
       )}
     </div>
