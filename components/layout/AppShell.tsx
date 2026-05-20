@@ -1,6 +1,5 @@
 'use client';
 
-import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 
 interface AppShellProps {
@@ -39,8 +38,7 @@ export default function AppShell({
         totalStages={totalStages}
       />
       <div className="lg:pl-[260px]">
-        <Navbar />
-        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="p-4 pt-16 sm:p-6 sm:pt-16 lg:p-8 lg:pt-8">{children}</main>
       </div>
     </div>
   );
