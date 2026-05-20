@@ -15,6 +15,8 @@ function isPublicRoute(pathname: string) {
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const supabase = createMiddlewareClient<Database>({ req, res });
+
+  // Refreshes the session cookie on every matched request so users stay logged in
   const {
     data: { session },
   } = await supabase.auth.getSession();

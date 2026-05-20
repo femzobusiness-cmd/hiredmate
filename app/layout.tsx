@@ -1,4 +1,5 @@
 import MobileNav from '@/components/MobileNav';
+import { SupabaseProvider } from '@/components/providers/SupabaseProvider';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -28,8 +29,10 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} font-sans pb-20 md:pb-0`}>
-        {children}
-        <MobileNav />
+        <SupabaseProvider>
+          {children}
+          <MobileNav />
+        </SupabaseProvider>
       </body>
     </html>
   );
