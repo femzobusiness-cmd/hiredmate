@@ -411,7 +411,7 @@ function ReadinessRing({ score }: { score: number }) {
       transition={{ ...spring, delay: 0.2 }}
       className="mx-auto flex w-full max-w-[300px] flex-col items-center rounded-[28px] border border-white/70 bg-white/70 p-6 shadow-[0_18px_50px_rgba(124,92,191,0.18)] backdrop-blur"
     >
-      <div className="relative h-56 w-56">
+      <div className="relative h-40 w-40">
         <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
           <circle
             cx="60"
@@ -437,13 +437,13 @@ function ReadinessRing({ score }: { score: number }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="text-5xl font-black text-text-primary">{count}%</span>
-          <span className="mt-1 text-sm font-bold uppercase tracking-[0.2em] text-text-muted">
+          <span className="text-3xl font-bold text-text-primary">{count}%</span>
+          <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-text-muted">
             Interview Ready
           </span>
         </div>
       </div>
-      <p className="mt-2 text-center text-sm font-medium text-text-secondary">
+      <p className="mt-3 px-4 text-center text-xs leading-relaxed text-gray-400">
         Powered by score, completed sessions, and streak consistency.
       </p>
     </motion.div>

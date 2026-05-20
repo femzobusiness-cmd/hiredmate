@@ -4,6 +4,8 @@ import { getSkillProgress } from '@/lib/skills';
 import { cn } from '@/utils/cn';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { SkillWithProgress } from './SkillCard';
 
 type SkillAnswerHighlight = {
@@ -21,15 +23,24 @@ export function SkillDetailModal({
   onClose: () => void;
 }) {
   const progress = skill ? getSkillProgress(skill.xp) : null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
+  return createPortal(
     <AnimatePresence>
       {skill && progress && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
           onClick={onClose}
         >
           <motion.div
@@ -150,6 +161,7 @@ export function SkillDetailModal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
