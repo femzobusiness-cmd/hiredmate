@@ -12,7 +12,23 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'HiredMate — AI Interview Prep for Nurses',
   description:
-    'Personalized AI-powered interview preparation for nurses and healthcare professionals.',
+    'Practice nursing interviews with an AI hiring manager that pushes back on weak answers. Hospital-specific prep packs, voice analysis, and battle mode. Free to start.',
+  keywords: [
+    'nursing interview prep',
+    'nurse interview practice',
+    'AI mock interview nurse',
+    'nursing job interview',
+    'RN interview questions',
+    'travel nurse interview',
+  ],
+  openGraph: {
+    title: 'HiredMate — AI Interview Prep for Nurses',
+    description:
+      'The #1 AI interview prep platform for nurses. Mock interviews, voice practice, hospital packs.',
+    url: 'https://hiredmate.online',
+    siteName: 'HiredMate',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
