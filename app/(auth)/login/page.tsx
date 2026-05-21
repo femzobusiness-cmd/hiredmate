@@ -8,6 +8,7 @@ import { FloatingParticles } from '@/components/ui/FloatingParticles';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { motion } from 'framer-motion';
 import { Brain, ShieldCheck, Stethoscope } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
@@ -75,7 +76,19 @@ export default function LoginPage() {
     <div className="grid min-h-screen lg:grid-cols-2">
       <section className="relative hidden overflow-hidden bg-purple-gradient p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <FloatingParticles />
-        <Logo size="lg" className="breathe relative z-10" />
+        <div className="flex items-center gap-2">
+          <Image
+            src="/hiredmate-logo.png"
+            alt="HiredMate"
+            width={40}
+            height={40}
+            className="rounded-xl"
+          />
+          <span style={{ fontFamily: "'Fredoka One', cursive" }} className="text-xl font-bold">
+            <span className="text-white">Hired</span>
+            <span className="ml-1 rounded-lg bg-white/20 px-2 py-0.5 text-white">Mate</span>
+          </span>
+        </div>
         <div>
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-secondary">
             Free during beta — full access
