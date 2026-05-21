@@ -3,6 +3,7 @@
 import type { GeneratedResumeContent, ResumeFormData } from '@/lib/resume';
 import {
   Document,
+  Image,
   Page,
   StyleSheet,
   Text,
@@ -16,7 +17,30 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#1f2937',
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  headerText: { flex: 1, paddingRight: 12 },
   headerName: { fontSize: 22, fontWeight: 'bold', marginBottom: 4 },
+  headshotClassic: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: '#ddd6fe',
+  },
+  headshotModern: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignSelf: 'center',
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
   contact: { fontSize: 9, color: '#6b7280', marginBottom: 8 },
   divider: {
     height: 2,
@@ -68,6 +92,7 @@ interface ResumeDocumentProps {
 
 function ClassicResume({ formData, generated }: ResumeDocumentProps) {
   const { personal } = formData;
+  const headshot = personal.headshotBase64 ?? null;
   const contact = [
     personal.email,
     personal.phone,
@@ -80,8 +105,15 @@ function ClassicResume({ formData, generated }: ResumeDocumentProps) {
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
-        <Text style={styles.headerName}>{personal.fullName}</Text>
-        <Text style={styles.contact}>{contact}</Text>
+        <View style={styles.headerRow}>
+          <View style={styles.headerText}>
+            <Text style={styles.headerName}>{personal.fullName}</Text>
+            <Text style={styles.contact}>{contact}</Text>
+          </View>
+          {headshot ? (
+            <Image src={headshot} style={styles.headshotClassic} />
+          ) : null}
+        </View>
         <View style={styles.divider} />
 
         <Text style={styles.sectionTitle}>Professional Summary</Text>
@@ -142,11 +174,13 @@ function ClassicResume({ formData, generated }: ResumeDocumentProps) {
 
 function ModernResume({ formData, generated }: ResumeDocumentProps) {
   const { personal } = formData;
+  const headshot = personal.headshotBase64 ?? null;
 
   return (
     <Document>
       <Page size="LETTER" style={styles.modernPage}>
         <View style={styles.sidebar}>
+          {headshot ? <Image src={headshot} style={styles.headshotModern} /> : null}
           <Text style={styles.sidebarName}>{personal.fullName}</Text>
           <Text style={styles.sidebarText}>{personal.email}</Text>
           <Text style={styles.sidebarText}>{personal.phone}</Text>

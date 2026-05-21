@@ -56,6 +56,7 @@ export function ResumePreviewHTML({
   className,
 }: ResumePreviewHTMLProps) {
   const { personal } = formData;
+  const headshot = personal.headshotBase64 ?? null;
   const contact = [
     personal.email,
     personal.phone,
@@ -72,6 +73,16 @@ export function ResumePreviewHTML({
         )}
       >
         <aside className="w-[32%] bg-[#7C5CBF] p-8 text-white">
+          {headshot && (
+            <div className="mb-4 flex justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={headshot}
+                alt=""
+                className="h-24 w-24 rounded-full border-2 border-white/30 object-cover"
+              />
+            </div>
+          )}
           <h1 className="text-2xl font-bold">{personal.fullName}</h1>
           <div className="mt-4 space-y-1 text-xs opacity-90">
             {contact.map((line) => (
@@ -139,8 +150,20 @@ export function ResumePreviewHTML({
         className
       )}
     >
-      <h1 className="text-3xl font-bold text-gray-900">{personal.fullName}</h1>
-      <p className="mt-1 text-sm text-gray-500">{contact.join(' | ')}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-3xl font-bold text-gray-900">{personal.fullName}</h1>
+          <p className="mt-1 text-sm text-gray-500">{contact.join(' | ')}</p>
+        </div>
+        {headshot && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={headshot}
+            alt=""
+            className="h-20 w-20 shrink-0 rounded-full border-2 border-purple-200 object-cover"
+          />
+        )}
+      </div>
       <div className="my-4 h-0.5 bg-[#7C5CBF]" />
 
       <section className="mb-6">

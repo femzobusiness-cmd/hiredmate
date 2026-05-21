@@ -1,3 +1,4 @@
+import { CapacitorNativeInit } from '@/components/CapacitorNativeInit';
 import { SupabaseProvider } from '@/components/providers/SupabaseProvider';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
@@ -28,6 +29,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} font-sans`}>
+        <CapacitorNativeInit />
         <SupabaseProvider>{children}</SupabaseProvider>
       </body>
     </html>

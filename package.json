@@ -2,14 +2,29 @@
   "name": "hiredmate",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:mobile": "node scripts/cap-cli.mjs sync",
+    "open:ios": "node scripts/cap-cli.mjs open ios",
+    "open:android": "node scripts/cap-cli.mjs open android",
+    "sync": "node scripts/cap-cli.mjs sync",
+    "cap": "node scripts/cap-cli.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/haptics": "^6.0.3",
+    "@capacitor/ios": "^6.2.1",
+    "@capacitor/splash-screen": "^6.0.4",
+    "@capacitor/status-bar": "^6.0.3",
     "@react-pdf/renderer": "^4.5.1",
     "@shadcn/ui": "^0.0.4",
     "@stripe/stripe-js": "^9.6.0",

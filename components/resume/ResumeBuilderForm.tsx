@@ -22,6 +22,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ResumeHeadshotUpload } from './ResumeHeadshotUpload';
 import { ResumeProgressBar } from './ResumeProgressBar';
 
 const GENERATION_MESSAGES = [
@@ -73,7 +74,17 @@ export function ResumeBuilderForm({ resumeId, initialData }: Props) {
         .single();
       if (cancelled) return;
       if (!error && data?.resume_data) {
-        setFormData(data.resume_data as ResumeFormData);
+        const loaded = data.resume_data as ResumeFormData;
+        const defaults = defaultResumeFormData();
+        setFormData({
+          ...defaults,
+          ...loaded,
+          personal: {
+            ...defaults.personal,
+            ...loaded.personal,
+            headshotBase64: loaded.personal?.headshotBase64 ?? null,
+          },
+        });
       }
       setLoadingInitial(false);
     })();
@@ -353,6 +364,12 @@ export function ResumeBuilderForm({ resumeId, initialData }: Props) {
                 Tell us about yourself and your target role
               </p>
               <div className="mt-6 space-y-4">
+                <ResumeHeadshotUpload
+                  headshotBase64={formData.personal.headshotBase64}
+                  onChange={(headshotBase64) =>
+                    updatePersonal('headshotBase64', headshotBase64)
+                  }
+                />
                 <Input
                   label="Full Name"
                   value={formData.personal.fullName}

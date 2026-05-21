@@ -120,6 +120,8 @@ export interface ResumeFormData {
     yearsExperience: string;
     summaryPreference: 'ai' | 'own';
     ownSummary: string;
+    /** Data URL (base64) for optional profile headshot */
+    headshotBase64: string | null;
   };
   workExperience: WorkExperienceEntry[];
   education: EducationEntry[];
@@ -203,6 +205,7 @@ export function defaultResumeFormData(): ResumeFormData {
       yearsExperience: 'New Grad',
       summaryPreference: 'ai',
       ownSummary: '',
+      headshotBase64: null,
     },
     workExperience: [],
     education: [createEmptyEducationEntry()],
