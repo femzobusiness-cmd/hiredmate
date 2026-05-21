@@ -15,11 +15,12 @@ export const metadata: Metadata = {
     'Practice nursing interviews with an AI hiring manager that pushes back on weak answers. Hospital-specific prep packs, voice analysis, and battle mode. Free to start.',
   keywords: [
     'nursing interview prep',
-    'nurse interview practice',
-    'AI mock interview nurse',
-    'nursing job interview',
+    'nurse interview',
+    'AI mock interview',
+    'nursing job',
     'RN interview questions',
-    'travel nurse interview',
+    'travel nurse',
+    'hospital interview',
   ],
   openGraph: {
     title: 'HiredMate — AI Interview Prep for Nurses',

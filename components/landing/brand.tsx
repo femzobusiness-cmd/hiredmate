@@ -2,6 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/utils/cn';
 
+export const fredoka = { fontFamily: "'Fredoka One', cursive" } as const;
+
 export function HiredMateBrand({
   logoSize = 32,
   className,
@@ -21,12 +23,9 @@ export function HiredMateBrand({
         className="rounded-xl"
         priority
       />
-      <span
-        className="text-xl tracking-tight"
-        style={{ fontFamily: "'Fredoka One', cursive" }}
-      >
-        <span className="text-gray-900">Hired</span>
-        <span className="ml-0.5 rounded-lg bg-[#7C5CBF] px-1.5 py-0.5 text-white">
+      <span className="text-xl font-bold tracking-tight" style={fredoka}>
+        <span className="text-white">Hired</span>
+        <span className="ml-0.5 rounded-lg bg-[#7C5CBF] px-2 py-0.5 text-white">
           Mate
         </span>
       </span>
@@ -38,5 +37,3 @@ export function HiredMateBrand({
   }
   return content;
 }
-
-export const fredoka = { fontFamily: "'Fredoka One', cursive" } as const;

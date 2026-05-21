@@ -2,21 +2,32 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-function parseTarget(value: string): { num: number; suffix: string; prefix: string } {
-  const match = value.match(/^([^0-9]*)([0-9,]+)(.*)$/);
-  if (!match) return { prefix: '', num: 0, suffix: value };
-  return {
-    prefix: match[1],
-    num: parseInt(match[2].replace(/,/g, ''), 10),
-    suffix: match[3],
-  };
+function parseStatValue(raw: string): {
+  prefix: string;
+  target: number;
+  suffix: string;
+  decimals: number;
+} {
+  const match = raw.match(/^([^0-9]*)([\d,.]+)(.*)$/);
+  if (!match) {
+    return { prefix: '', target: 0, suffix: raw, decimals: 0 };
+  }
+  const numStr = match[2].replace(/,/g, '');
+  const target = parseFloat(numStr) || 0;
+  const decimals = numStr.includes('.') ? (numStr.split('.')[1]?.length ?? 0) : 0;
+  return { prefix: match[1], target, suffix: match[3], decimals };
 }
 
-function formatNum(n: number, original: string): string {
-  if (original.includes(',')) {
-    return n.toLocaleString();
+function formatValue(value: number, decimals: number, suffix: string): string {
+  if (suffix.includes('+') && value >= 1000) {
+    return value.toLocaleString('en-US', {
+      maximumFractionDigits: decimals,
+    });
   }
-  return String(n);
+  if (decimals > 0) {
+    return value.toFixed(decimals);
+  }
+  return String(Math.round(value));
 }
 
 export function CountUpStat({
@@ -28,7 +39,8 @@ export function CountUpStat({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [display, setDisplay] = useState('0');
-  const { num, suffix, prefix } = parseTarget(value);
+  const { prefix, target, suffix, decimals } = parseStatValue(value);
+  const hasStarted = useRef(false);
 
   useEffect(() => {
     const el = ref.current;
@@ -36,35 +48,35 @@ export function CountUpStat({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting) return;
+        if (!entry.isIntersecting || hasStarted.current) return;
+        hasStarted.current = true;
+
         const duration = 1500;
         const start = performance.now();
+
         const tick = (now: number) => {
-          const progress = Math.min(1, (now - start) / duration);
+          const progress = Math.min((now - start) / duration, 1);
           const eased = 1 - Math.pow(1 - progress, 3);
-          const current = Math.round(num * eased);
-          setDisplay(`${prefix}${formatNum(current, value)}${suffix}`);
+          const current = target * eased;
+          setDisplay(
+            `${prefix}${formatValue(current, decimals, suffix)}${suffix}`
+          );
           if (progress < 1) requestAnimationFrame(tick);
         };
+
         requestAnimationFrame(tick);
-        observer.disconnect();
       },
       { threshold: 0.3 }
     );
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [num, prefix, suffix, value]);
+  }, [target, prefix, suffix, decimals]);
 
   return (
     <div ref={ref} className="text-center">
-      <p
-        className="text-4xl font-black text-[#7C5CBF] sm:text-5xl"
-        style={{ fontFamily: "'Fredoka One', cursive" }}
-      >
-        {display}
-      </p>
-      <p className="mt-2 text-sm text-gray-500">{label}</p>
+      <p className="text-4xl font-black text-white">{display}</p>
+      <p className="mt-1 text-sm text-white/50">{label}</p>
     </div>
   );
 }
