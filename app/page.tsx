@@ -1,4 +1,4 @@
-import { LandingPage } from '@/components/landing/LandingPage';
+import { ImmersiveLandingPage } from '@/components/immersive-landing/ImmersiveLandingPage';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
@@ -12,5 +12,5 @@ export default async function Home() {
     redirect('/dashboard');
   }
 
-  return <LandingPage />;
+  return <ImmersiveLandingPage />;
 }
